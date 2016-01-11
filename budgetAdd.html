@@ -1,0 +1,71 @@
+
+<!-- We don't need full layout here, because this page will be parsed with Ajax-->
+<!-- Top Navbar-->
+<div class="navbar">
+  <div class="navbar-inner">
+    <div class="left"><a href="#" class="back link"> <i class="icon icon-back"></i><span>Back</span></a></div>
+    <div class="center sliding">Add Budget</div>
+    <div class="right">
+      <a href="#" class="link icon-only open-panel"> <i class="icon icon-bars"></i></a>
+    </div>
+  </div>
+</div>
+<div class="pages">
+  <!-- Page, data-page contains page name-->
+  <div data-page="budgetAdd" class="page">
+    <!-- Scrollable page content-->
+    <div class="page-content">
+      <div class="content-block">
+        <div class="list-block">
+          <ul>
+            <li>
+              <a href="#" class="item-link smart-select">
+				        <!-- select -->
+				        <select id="budget_month">
+				        	<option value="">Select</option>
+				          <option value="01">January</option>
+				          <option value="02">February</option>
+				          <option value="03">March</option>
+				          <option value="04">April</option>
+				          <option value="05">May</option>
+				          <option value="06">June</option>
+				          <option value="07">July</option>
+				          <option value="08">August</option>
+				          <option value="09">September</option>
+				          <option value="10">October</option>
+				          <option value="11">November</option>
+				          <option value="12">December</option>
+				        </select>
+				        <div class="item-content">
+				          <div class="item-inner">
+				            <!-- Select label -->
+				            <div class="item-title">Month</div>
+				          </div>
+				        </div>
+				      </a>
+            </li>
+            <li>
+              <div class="item-content">
+                <div class="item-inner">
+                  <div class="item-input">
+                    <input type="text" placeholder="Year" id="budget_year">
+                  </div>
+                </div>
+              </div>
+            </li>
+            <li>
+              <div class="item-content">
+                <div class="item-inner">
+                  <div class="item-input">
+                    <input type="tel" placeholder="How much?" onkeypress="return isNumberKey(event);" onkeyup="this.value=numberWithCommas(this.value);" id="budget">
+                  </div>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </div>
+        <a href="#" class="button button-big button-fill color-gray" style="background-color:grey;" onclick="budgetAdd();">Submit</a>
+      </div>
+    </div>
+  </div>
+</div>

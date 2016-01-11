@@ -179,6 +179,52 @@ function getFormattedDateYMDHMS (d) {
                d.getSeconds().padLeft()].join(':');
 }
 
+function getMonthString(month) {
+  var monthStr = '';
+  var monthNumber = Number(month);
+
+  switch (monthNumber) {
+    case 1:
+        monthStr = "January";
+        break;
+    case 2:
+        monthStr = "February";
+        break;
+    case 3:
+        monthStr = "March";
+        break;
+    case 4:
+        monthStr = "April";
+        break;
+    case 5:
+        monthStr = "May";
+        break;
+    case 6:
+        monthStr = "June";
+        break;
+    case 7:
+        monthStr = "July";
+        break;
+    case 8:
+        monthStr = "August";
+        break;
+    case 9:
+        monthStr = "September";
+        break;
+    case 10:
+        monthStr = "October";
+        break;
+    case 11:
+        monthStr = "November";
+        break;
+    case 12:
+        monthStr = "December";
+        break;
+  }
+
+  return monthStr;
+}
+
 // convert date to GMT+7
 function convertDateToGMT7(rawD) {
   return new Date(rawD.getTime() + rawD.getTimezoneOffset()*60*1000 + 7*60*60*1000);
@@ -692,6 +738,7 @@ function loadSpendingEditPage (data) {
   return;
 }
 
+// clear spending filter
 function spendingFilterClear() {
   fs_from_spending_dateCal.setValue('');
   fs_to_spending_dateCal.setValue('');
@@ -704,4 +751,65 @@ function spendingFilterClear() {
   localStorage.fs_name = '';
   localStorage.fs_brand = '';
   localStorage.fs_location = '';
+}
+
+
+
+function budgetAdd() {
+  if (mydb) {
+      //get the values of the make and model text inputs
+      var budget_month = document.getElementById('budget_month').value.trim();
+      var budget_year = document.getElementById("budget_year").value.trim();
+      var budget = document.getElementById("budget").value.trim();
+      var budgetNumber = Number(budget.split(',').join(''));
+
+      //Test to ensure that the user has entered both a make and model
+      if (budget_month!=="" && budget_year!=="" && budget!=="" && budgetNumber!=0) {
+        mydb.transaction(function (t) {  
+          t.executeSql("SELECT COUNT(1) FROM budget WHERE month_year='"+budget_year+"-"+budget_month+"' ", [], 
+            function (transaction, results) {
+              if (results.rows.length>0 && Number(results.rows.item(0))>0) {
+                myApp.prompt("Budget exists for "+getMonthString(budget_month)+" "+budget_year+".\n"+
+                  "Please re-input month and year in MM-YYYY.\n"+
+                  "E.g.: 01-2016", 
+                  'Data Exists', 
+                  function (value) {
+                    mydb.transaction(function (t) {
+                        t.executeSql("UPDATE budget ", [name, brand, location, descr, spent, spending_date, is_del, upd_date]);              
+                        listSpending();
+                        mainView.router.back();
+                    });
+                    myApp.alert('Budget for '+getMonthString(budget_month)+" "+budget_year+'\n'+
+                      'is now '+budget); 
+                  }
+                );
+              } else {
+
+              }
+            }
+          );
+        });
+
+          //Insert the user entered details into the cars table, note the use of the ? placeholder, these will replaced by the data passed in as an array as the second parameter
+          mydb.transaction(function (t) {
+              t.executeSql("INSERT INTO spending (name, brand, location, descr, spent, spending_date, is_del, upd_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [name, brand, location, descr, spent, spending_date, is_del, upd_date]);              
+              listSpending();
+              mainView.router.back();
+          });
+          mydb.transaction(function (t) {
+              t.executeSql("INSERT INTO name (name) VALUES (?)", [name]);
+          });
+          mydb.transaction(function (t) {
+              t.executeSql("INSERT INTO brand (name) VALUES (?)", [brand]);
+          });
+          mydb.transaction(function (t) {
+              t.executeSql("INSERT INTO location (name) VALUES (?)", [location]);
+          });
+      } else {
+          myApp.alert("Invalid input or incomplete!");
+      }
+  } else {
+      myApp.alert("Not supported on your phone.");
+      mainView.router.back();
+  }
 }
