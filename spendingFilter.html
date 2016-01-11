@@ -1,0 +1,72 @@
+
+<!-- We don't need full layout here, because this page will be parsed with Ajax-->
+<!-- Top Navbar-->
+<div class="navbar">
+  <div class="navbar-inner">
+    <div class="left"><a href="#" class="back link" onclick="listSpending();"> <i class="icon icon-back"></i><span>Back</span></a></div>
+    <div class="center sliding">Filter Spending</div>
+    <div class="right">
+      <a href="#" class="link icon-only open-panel"> <i class="icon icon-bars"></i></a>
+    </div>
+  </div>
+</div>
+<div class="pages">
+  <!-- Page, data-page contains page name-->
+  <div data-page="spendingFilter" class="page">
+    <!-- Scrollable page content-->
+    <div class="page-content">
+      <div class="content-block">
+        <div class="list-block">
+          <ul>
+            <li>
+              <div class="item-content">
+                <div class="item-inner">
+                  <div class="item-input">
+                    <input type="text" placeholder="From" readonly id="fs_from_spending_date">
+                  </div>
+                </div>
+              </div>
+            </li>
+            <li>
+              <div class="item-content">
+                <div class="item-inner">
+                  <div class="item-input">
+                    <input type="text" placeholder="To" readonly id="fs_to_spending_date">
+                  </div>
+                </div>
+              </div>
+            </li>
+            <li>
+              <div class="item-content">
+                <div class="item-inner">
+                  <div class="item-input">
+                    <input type="text" placeholder="Name" id="fs_name">
+                  </div>
+                </div>
+              </div>
+            </li>
+            <li>
+              <div class="item-content">
+                <div class="item-inner">
+                  <div class="item-input">
+                    <input type="text" placeholder="Brand" id="fs_brand">
+                  </div>
+                </div>
+              </div>
+            </li>
+            <li>
+              <div class="item-content">
+                <div class="item-inner">
+                  <div class="item-input">
+                    <input type="text" placeholder="Where do you buy?" id="fs_location">
+                  </div>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </div>
+        <a href="#" class="button button-big button-fill color-gray" style="background-color:grey;" onclick="spendingFilterClear();">Clear</a>
+      </div>
+    </div>
+  </div>
+</div>

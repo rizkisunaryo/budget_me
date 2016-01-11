@@ -1,3 +1,6 @@
+var fs_from_spending_dateCal;
+var fs_to_spending_dateCal;
+
 // Initialize your app
 var myApp = new Framework7({
     swipePanel: 'left',
@@ -206,6 +209,57 @@ myApp.onPageInit('spendingAdd', function (page) {
             setAutoComplete(t,'location','#location');
         });
     } 
+});
+
+myApp.onPageInit('spendingFilter', function (page) {
+    mydb.transaction(function (t) {
+      setAutoComplete(t,'name','#fs_name');
+      setAutoComplete(t,'brand','#fs_brand');
+      setAutoComplete(t,'location','#fs_location');
+    });
+
+    fs_from_spending_dateCal = myApp.calendar({
+        input: '#fs_from_spending_date',
+        closeOnSelect: true,
+        onClose: function (p, values, displayValues) {
+                    localStorage.fs_from_spending_date = document.getElementById('fs_from_spending_date').value;
+                  }
+    });
+    if (!isEmpty(localStorage.fs_from_spending_date)) {
+      document.getElementById('fs_from_spending_date').value = localStorage.fs_from_spending_date;
+    }
+
+    fs_to_spending_dateCal = myApp.calendar({
+        input: '#fs_to_spending_date',
+        closeOnSelect: true,
+        onClose: function (p, values, displayValues) {
+                    localStorage.fs_to_spending_date = document.getElementById('fs_to_spending_date').value;
+                  }
+    });
+    if (!isEmpty(localStorage.fs_to_spending_date)) {
+      document.getElementById('fs_to_spending_date').value = localStorage.fs_to_spending_date;
+    }
+
+    $('#fs_name').focusout(function() {
+      localStorage.fs_name = document.getElementById('fs_name').value;
+    });
+    if (!isEmpty(localStorage.fs_name)) {
+      document.getElementById('fs_name').value = localStorage.fs_name;
+    }
+
+    $('#fs_brand').focusout(function() {
+      localStorage.fs_brand = document.getElementById('fs_brand').value;
+    });
+    if (!isEmpty(localStorage.fs_brand)) {
+      document.getElementById('fs_brand').value = localStorage.fs_brand;
+    }
+
+    $('#fs_location').focusout(function() {
+      localStorage.fs_location = document.getElementById('fs_location').value;
+    });
+    if (!isEmpty(localStorage.fs_location)) {
+      document.getElementById('fs_location').value = localStorage.fs_location;
+    }
 });
 
 
@@ -539,7 +593,7 @@ function loadSpendingEdit(id) {
   } else {
       var data = {};
       data['id']=1;
-      data['sold_date']='2015-12-12';
+      data['spending_date']='2015-12-12';
       data['name']='Sepatu';
       loadSpendingEditPage(data);
   }
@@ -636,4 +690,18 @@ function loadSpendingEditPage (data) {
     '</div>\n'
   );
   return;
+}
+
+function spendingFilterClear() {
+  fs_from_spending_dateCal.setValue('');
+  fs_to_spending_dateCal.setValue('');
+  document.getElementById('fs_name').value = '';
+  document.getElementById('fs_brand').value = '';
+  document.getElementById('fs_location').value = '';
+
+  localStorage.fs_from_spending_date = '';
+  localStorage.fs_to_spending_date = '';
+  localStorage.fs_name = '';
+  localStorage.fs_brand = '';
+  localStorage.fs_location = '';
 }
