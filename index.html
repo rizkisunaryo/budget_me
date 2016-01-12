@@ -97,15 +97,27 @@
             <div class="page-content">
               <center>
                 <div class="content-block-title">This Month Budget</div>
-                <div class="content-block">
-                  <div class="content-block-inner">
-                    <span style="font-size:27px; font-weight:bold;">9,999,999</span>
-                  </div>
+                <div class="list-block">
+                  <ul>
+                    <li>
+                      <div class="item-content">
+                        <div class="item-inner">
+                          <div class="item-input">
+                            <input style="text-align:center; font-size:27px;" type="tel" placeholder="0" onkeypress="return isNumberKey(event);" onkeyup="this.value=numberWithCommas(this.value);" id="this_month_budget">
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                  </ul>
                 </div>
                 <div class="content-block-title">Today Budget</div>
                 <span style="font-size:27px; font-weight:bold;">99,999</span>
                 <div class="content-block-title">Remaining Today</div>
                 <span style="font-size:27px; font-weight:bold;">99,999</span>
+                <div class="content-block-title">Today Spending</div>
+                <p><a href="todaySpendingAdd.html" class="button link button-fill color-gray" style="background-color:blue;">Add Spending</a></p>
+                <div id="todaySpendingWelcome"></div>
+                <div id="todaySpendingListContainer"></div>
               </center>
             </div>
           </div>

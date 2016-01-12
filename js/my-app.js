@@ -180,6 +180,14 @@ function getFormattedDateYMDHMS (d) {
                d.getSeconds().padLeft()].join(':');
 }
 
+// format date to yyyy-MM
+function getFormattedDateYM(d) {
+  return [d.getFullYear(),
+              (d.getMonth()+1).padLeft()]
+              .join('-');
+}
+
+// e.g.: January, February, and so on...
 function getMonthString(month) {
   var monthStr = '';
   var monthNumber = Number(month);
@@ -236,6 +244,47 @@ function convertDateToGMT7(rawD) {
 
 
 
+
+function loadIndex() {
+  if (mydb) {
+    //Get all the cars from the database with a select statement, set outputCarList as the callback function for the executeSql command
+    mydb.transaction(function (t) {
+      var fDate = new Date;
+      var fDateMY = getFormattedDateYM(fDate);
+      var upd_date = getFormattedDateYMDHMS(fDate);
+      t.executeSql("SELECT * FROM budget WHERE month_year='"+fDateMY+"' ", [], function (transaction, results) {
+        if (results.rows.length>0) {
+          document.getElementById('this_month_budget').value = results.rows.item(0).budget;
+        } else {
+          document.getElementById('this_month_budget').value = '0';
+          mydb.transaction(function (t) {
+            t.executeSql("INSERT INTO budget VALUES (?, ?, ?, ?)", [fDateMY, '0', 0, upd_date]);              
+          });
+        }
+      });
+    });
+  } else {
+    document.getElementById('this_month_budget').value = '0';
+  }
+
+  $('#this_month_budget').focusout(function() {
+    if (mydb) {
+      var fDate = new Date;
+      var fDateMY = getFormattedDateYM(fDate);
+      var upd_date = getFormattedDateYMDHMS(fDate);
+      mydb.transaction(function (t) {
+        t.executeSql("UPDATE budget SET budget=?, upd_date=? WHERE month_year=?", [document.getElementById('this_month_budget').value, upd_date, fDateMY]); 
+      });
+    } else {
+      myApp.alert("Not supported on your phone.");
+    }
+  });
+}
+loadIndex();
+
+myApp.onPageInit('index', function (page) {
+  loadIndex();
+});
 
 myApp.onPageInit('spending', function (page) {
   listSpending();
@@ -832,6 +881,8 @@ function budgetAdd() {
         mydb.transaction(function (t) {
             t.executeSql("INSERT INTO location (name) VALUES (?)", [location]);
         });
+
+        loadIndex();
       } else {
           myApp.alert("Invalid input or incomplete!");
       }
@@ -868,6 +919,8 @@ function budgetEdit(month_year) {
           mydb.transaction(function (t) {
               t.executeSql("INSERT INTO location (name) VALUES (?)", [location]);
           });
+
+          loadIndex();
       } else {
           myApp.alert("Input not complete!");
       }
@@ -884,6 +937,7 @@ function budgetDel(month_year) {
     mydb.transaction(function (t) {
       t.executeSql("DELETE FROM budget WHERE month_year=?", [month_year]);
       listBudget();
+      loadIndex();
       mainView.router.back();
     });
   } else {
