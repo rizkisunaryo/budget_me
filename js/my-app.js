@@ -267,9 +267,9 @@ myApp.onPageInit('spendingFilter', function (page) {
     fs_from_spending_dateCal = myApp.calendar({
         input: '#fs_from_spending_date',
         closeOnSelect: true,
-        onClose: function (p, values, displayValues) {
-                    localStorage.fs_from_spending_date = document.getElementById('fs_from_spending_date').value;
-                  }
+        // onClose: function (p, values, displayValues) {
+        //             localStorage.fs_from_spending_date = document.getElementById('fs_from_spending_date').value;
+        //           }
     });
     if (!isEmpty(localStorage.fs_from_spending_date)) {
       document.getElementById('fs_from_spending_date').value = localStorage.fs_from_spending_date;
@@ -278,34 +278,38 @@ myApp.onPageInit('spendingFilter', function (page) {
     fs_to_spending_dateCal = myApp.calendar({
         input: '#fs_to_spending_date',
         closeOnSelect: true,
-        onClose: function (p, values, displayValues) {
-                    localStorage.fs_to_spending_date = document.getElementById('fs_to_spending_date').value;
-                  }
+        // onClose: function (p, values, displayValues) {
+        //             localStorage.fs_to_spending_date = document.getElementById('fs_to_spending_date').value;
+        //           }
     });
     if (!isEmpty(localStorage.fs_to_spending_date)) {
       document.getElementById('fs_to_spending_date').value = localStorage.fs_to_spending_date;
     }
 
-    $('#fs_name').focusout(function() {
-      localStorage.fs_name = document.getElementById('fs_name').value;
-    });
+    // $('#fs_name').focusout(function() {
+    //   localStorage.fs_name = document.getElementById('fs_name').value;
+    // });
     if (!isEmpty(localStorage.fs_name)) {
       document.getElementById('fs_name').value = localStorage.fs_name;
     }
 
-    $('#fs_brand').focusout(function() {
-      localStorage.fs_brand = document.getElementById('fs_brand').value;
-    });
+    // $('#fs_brand').focusout(function() {
+    //   localStorage.fs_brand = document.getElementById('fs_brand').value;
+    // });
     if (!isEmpty(localStorage.fs_brand)) {
       document.getElementById('fs_brand').value = localStorage.fs_brand;
     }
 
-    $('#fs_location').focusout(function() {
-      localStorage.fs_location = document.getElementById('fs_location').value;
-    });
+    // $('#fs_location').focusout(function() {
+    //   localStorage.fs_location = document.getElementById('fs_location').value;
+    // });
     if (!isEmpty(localStorage.fs_location)) {
       document.getElementById('fs_location').value = localStorage.fs_location;
     }
+});
+
+myApp.onPageInit('budget', function (page) {
+  listBudget();
 });
 
 
@@ -746,15 +750,24 @@ function spendingFilterClear() {
   document.getElementById('fs_brand').value = '';
   document.getElementById('fs_location').value = '';
 
-  localStorage.fs_from_spending_date = '';
-  localStorage.fs_to_spending_date = '';
-  localStorage.fs_name = '';
-  localStorage.fs_brand = '';
-  localStorage.fs_location = '';
+  // localStorage.fs_from_spending_date = '';
+  // localStorage.fs_to_spending_date = '';
+  // localStorage.fs_name = '';
+  // localStorage.fs_brand = '';
+  // localStorage.fs_location = '';
+}
+
+function spendingFilterApply() {
+  localStorage.fs_from_spending_date = document.getElementById('fs_from_spending_date').value;
+  localStorage.fs_to_spending_date = document.getElementById('fs_to_spending_date').value;
+  localStorage.fs_name = document.getElementById('fs_name').value;
+  localStorage.fs_brand = document.getElementById('fs_brand').value;
+  localStorage.fs_location = document.getElementById('fs_location').value;
 }
 
 
 
+// Add BUDGET
 function budgetAdd() {
   if (mydb) {
       //get the values of the make and model text inputs
@@ -762,54 +775,152 @@ function budgetAdd() {
       var budget_year = document.getElementById("budget_year").value.trim();
       var budget = document.getElementById("budget").value.trim();
       var budgetNumber = Number(budget.split(',').join(''));
+      var is_del = 0;
+      var upd_date = getFormattedDateYMDHMS(convertDateToGMT7(new Date()));
 
       //Test to ensure that the user has entered both a make and model
       if (budget_month!=="" && budget_year!=="" && budget!=="" && budgetNumber!=0) {
         mydb.transaction(function (t) {  
-          t.executeSql("SELECT COUNT(1) FROM budget WHERE month_year='"+budget_year+"-"+budget_month+"' ", [], 
+          t.executeSql("SELECT COUNT(1) AS budget_count FROM budget WHERE month_year='"+budget_year+"-"+budget_month+"' ", [], 
             function (transaction, results) {
-              if (results.rows.length>0 && Number(results.rows.item(0))>0) {
+              if (results.rows.length>0 && Number(results.rows.item(0).budget_count)>0) {
                 myApp.prompt("Budget exists for "+getMonthString(budget_month)+" "+budget_year+".\n"+
                   "Please re-input month and year in MM-YYYY.\n"+
                   "E.g.: 01-2016", 
                   'Data Exists', 
                   function (value) {
-                    mydb.transaction(function (t) {
-                        t.executeSql("UPDATE budget ", [name, brand, location, descr, spent, spending_date, is_del, upd_date]);              
-                        listSpending();
-                        mainView.router.back();
-                    });
-                    myApp.alert('Budget for '+getMonthString(budget_month)+" "+budget_year+'\n'+
-                      'is now '+budget); 
+                    if (value===budget_month+'-'+budget_year) {
+                      mydb.transaction(function (t) {
+                          t.executeSql("UPDATE budget set budget=?, upd_date=? WHERE month_year=?", [budget,upd_date,budget_year+'-'+budget_month]);
+                          myApp.alert('Budget for '+getMonthString(budget_month)+" "+budget_year+'\n'+
+                            'is now '+budget); 
+                          listBudget();
+                          mainView.router.back();
+                      });
+                    } else {
+                      myApp.alert("Month and year don't match!"); 
+                    }
                   }
                 );
               } else {
-
+                mydb.transaction(function (t) {
+                  t.executeSql("INSERT INTO budget VALUES(?,?,?,?)", [budget_year+'-'+budget_month,budget,is_del,upd_date]);
+                  listBudget();
+                  mainView.router.back();
+                });
               }
             }
           );
         });
-
-          //Insert the user entered details into the cars table, note the use of the ? placeholder, these will replaced by the data passed in as an array as the second parameter
-          mydb.transaction(function (t) {
-              t.executeSql("INSERT INTO spending (name, brand, location, descr, spent, spending_date, is_del, upd_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [name, brand, location, descr, spent, spending_date, is_del, upd_date]);              
-              listSpending();
-              mainView.router.back();
-          });
-          mydb.transaction(function (t) {
-              t.executeSql("INSERT INTO name (name) VALUES (?)", [name]);
-          });
-          mydb.transaction(function (t) {
-              t.executeSql("INSERT INTO brand (name) VALUES (?)", [brand]);
-          });
-          mydb.transaction(function (t) {
-              t.executeSql("INSERT INTO location (name) VALUES (?)", [location]);
-          });
+        mydb.transaction(function (t) {
+            t.executeSql("INSERT INTO name (name) VALUES (?)", [name]);
+        });
+        mydb.transaction(function (t) {
+            t.executeSql("INSERT INTO brand (name) VALUES (?)", [brand]);
+        });
+        mydb.transaction(function (t) {
+            t.executeSql("INSERT INTO location (name) VALUES (?)", [location]);
+        });
       } else {
           myApp.alert("Invalid input or incomplete!");
       }
   } else {
       myApp.alert("Not supported on your phone.");
       mainView.router.back();
+  }
+}
+
+// list BUDGET
+function listBudget() {
+  //check to ensure the mydb object has been created
+  if (mydb) {
+      //Get all the cars from the database with a select statement, set outputCarList as the callback function for the executeSql command
+      mydb.transaction(function (t) {
+          var sqlStr = "SELECT * FROM budget WHERE 1 ";
+          if (!isEmpty(localStorage.fs_from_month_year)) {
+            sqlStr += "AND month_year >= '"+localStorage.fs_from_month_year+"' ";
+          } else
+          if (!isEmpty(localStorage.fs_to_month_year)) {
+            sqlStr += "AND month_year <= '"+localStorage.fs_to_month_year+"' ";
+          }
+          sqlStr += 'ORDER BY month_year ASC';
+          t.executeSql(sqlStr, [], listBudgetGenerate);
+      });
+  } else {
+      listBudgetGenerate2();
+  }
+}
+
+// generate list view for SPENDING
+function listBudgetGenerate(transaction, results) {
+  if (results.rows.length < 1) {
+    document.getElementById('budgetWelcome').innerHTML = '<p>No data. Please edit filter or add budget.</p>';
+    var budgetListContainer = document.getElementById('budgetListContainer');
+    budgetListContainer.innerHTML = '';
+  } else {
+    document.getElementById('budgetWelcome').innerHTML = '';
+
+    var budgetListContainer = document.getElementById('budgetListContainer');
+    var i;
+    var theInnerHtml = '';
+    var itemsDateArray = [];
+    var prevYear = '';
+    // var budgetTotalPerYear = 0;
+    for (i = 0; i < results.rows.length; i++) {
+        var row = results.rows.item(i);
+        var budget_year = row.month_year.substring(0,4);
+
+        if (typeof itemsDateArray[budget_year] === 'undefined') {
+            itemsDateArray[budget_year] = [];
+        }
+
+        if (prevYear!=budget_year && prevYear!=='') {
+          theInnerHtml += 
+            '<div class="content-block-title" id="budgetHistoryTitle_'+prevYear+'">'+prevYear+'</div>\n' + 
+            '<div class="list-block virtual-list media-list" id="budgetHistoryList_'+prevYear+'"></div>\n';
+
+          // budgetTotalPerYear = 0;
+        }
+        // budgetTotalPerYear += Number(row.spent.split(',').join(''));
+
+        var jsonData = {};
+        jsonData['month_year'] = row.month_year;
+        jsonData['month_str'] = getMonthString(row.month_year.substring(5,7));
+        jsonData['budget'] = row.budget;
+        itemsDateArray[budget_year].push(jsonData);
+
+        prevYear = budget_year;
+    }
+    theInnerHtml += 
+      '<div class="content-block-title" id="budgetHistoryTitle_'+prevYear+'">'+prevYear+'</div>\n' + 
+      '<div class="list-block virtual-list media-list" id="budgetHistoryList_'+prevYear+'"></div>\n';
+
+    budgetListContainer.innerHTML = theInnerHtml;
+
+    for (var k in itemsDateArray){
+        myApp.virtualList('#budgetHistoryList_'+k, {
+            // Array with plain HTML items
+            items: itemsDateArray[k],
+            // Template 7 template to render each item
+            template: 
+            '<li>\n' + 
+            '  <a href="#" class="item-link item-content budget-edit" data-id="{{month_year}}">\n' + 
+            '    <div class="item-inner" style="height:77px;">\n' + 
+            '      <div class="item-title-row">\n' + 
+            '        <div class="item-title">{{month_str}}</div>\n' + 
+            '        <div class="item-after"></div>\n' + 
+            '      </div>\n' + 
+            '      <div class="item-subtitle">{{budget}}</div>\n' + 
+            '      <div class="item-text"></div>\n' + 
+            '    </div>\n' + 
+            '  </a>\n' + 
+            '</li>',
+            height:77
+        });
+    }
+
+    $$('.budget-edit').on('click', function () {
+      loadBudgetEdit($$(this).data('id'));
+    });
   }
 }

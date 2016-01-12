@@ -3,7 +3,7 @@
 <!-- Top Navbar-->
 <div class="navbar">
   <div class="navbar-inner">
-    <div class="left"><a href="#" class="back link" onclick="listSpending();"> <i class="icon icon-back"></i><span>Back</span></a></div>
+    <div class="left"><a href="#" class="back link"> <i class="icon icon-back"></i><span>Back</span></a></div>
     <div class="center sliding">Filter Spending</div>
     <div class="right">
       <a href="#" class="link icon-only open-panel"> <i class="icon icon-bars"></i></a>
@@ -65,7 +65,14 @@
             </li>
           </ul>
         </div>
-        <a href="#" class="button button-big button-fill color-gray" style="background-color:grey;" onclick="spendingFilterClear();">Clear</a>
+        <div class="row">
+          <div class="col-50">
+            <a href="#" class="button button-big button-fill color-gray" style="background-color:grey;" onclick="spendingFilterClear();">Clear</a>
+          </div>
+          <div class="col-50">
+            <a href="#" class="button button-big button-fill color-gray" style="background-color:blue;" onclick="spendingFilterApply(); listSpending(); mainView.router.back();">Apply</a>
+          </div>
+        </div>
       </div>
     </div>
   </div>
