@@ -265,6 +265,49 @@ function loadIndex() {
       t.executeSql("SELECT * FROM budget WHERE month_year='"+fDateMY+"' ", [], function (transaction, results) {
         if (results.rows.length>0) {
           document.getElementById('this_month_budget').value = results.rows.item(0).budget;
+
+          // load today budget
+          var thisMonthBudget = Number(results.rows.item(0).budget.split(',').join(''));
+          mydb.transaction(function (t) {
+            t.executeSql("SELECT SUM(CAST(REPLACE(spent,',','') AS INT)) AS this_month_spending FROM spending WHERE SUBSTR(spending_date,1,7)='"+fDateMY+"' ", [], function (transaction, results) {
+              var thisMonthSpendingTotal = results.rows.item(0).this_month_spending;
+              thisMonthSpendingTotal = thisMonthSpendingTotal == null? 0 : thisMonthSpendingTotal;
+              var thisMonthBudgetRemaining = thisMonthBudget - thisMonthSpendingTotal;
+              
+              var todayBudget = 0;
+              var todayRemaining = 0;
+              if (thisMonthBudgetRemaining > 0) {
+                var fLastDateOfMonth = new Date;
+                fLastDateOfMonth.setMonth(fLastDateOfMonth.getMonth()+1);
+                fLastDateOfMonth.setDate(1);
+                fLastDateOfMonth.setTime(fLastDateOfMonth.getTime()-24*60*60*1000);
+                var remainingDay = fLastDateOfMonth.getDate() - fDate.getDate() + 1;
+
+                var todayBudget = parseInt(thisMonthBudgetRemaining / remainingDay);
+                t.executeSql("SELECT SUM(CAST(REPLACE(spent,',','') AS INT)) AS today_spending FROM spending WHERE spending_date='"+fDateMYD+"' ", [], function (transaction, results) {
+                  var todaySpendingTotal = results.rows.item(0).today_spending;
+                  todaySpendingTotal = todaySpendingTotal == null? 0 : todaySpendingTotal;
+                  todayRemaining = todayBudget - todaySpendingTotal;
+
+                  if (todayBudget<0) {
+                    document.getElementById('todayBudget').innerHTML = '0';
+                  } else {
+                    document.getElementById('todayBudget').innerHTML = numberWithCommas(todayBudget.toString());
+                  }
+                  
+                  if (todayRemaining<0) {
+                    document.getElementById('todayRemaining').innerHTML = '0';
+                  } else {
+                    document.getElementById('todayRemaining').innerHTML = numberWithCommas(todayRemaining.toString());
+                  }
+                });
+              } else {
+                document.getElementById('todayBudget').innerHTML = '0';
+                document.getElementById('todayRemaining').innerHTML = '0';
+              }
+            });
+          });
+
         } else {
           document.getElementById('this_month_budget').value = '0';
           mydb.transaction(function (t) {
@@ -276,20 +319,6 @@ function loadIndex() {
   } else {
     document.getElementById('this_month_budget').value = '0';
   }
-
-  // this month budget on focus out
-  $('#this_month_budget').focusout(function() {
-    if (mydb) {
-      var fDate = new Date;
-      var fDateMY = getFormattedDateYM(fDate);
-      var upd_date = getFormattedDateYMDHMS(fDate);
-      mydb.transaction(function (t) {
-        t.executeSql("UPDATE budget SET budget=?, upd_date=? WHERE month_year=?", [document.getElementById('this_month_budget').value, upd_date, fDateMY]); 
-      });
-    } else {
-      myApp.alert("Not supported on your phone.");
-    }
-  });
 
   // load today spendings
   if (mydb) {
@@ -374,9 +403,38 @@ function loadIndex() {
       listSpendingGenerate2();
   }
 }
+// this month budget on focus out
+  $('#this_month_budget').focusout(function() {
+    if (mydb) {
+      var fDate = new Date;
+      var fDateMY = getFormattedDateYM(fDate);
+      var upd_date = getFormattedDateYMDHMS(fDate);
+      mydb.transaction(function (t) {
+        t.executeSql("UPDATE budget SET budget=?, upd_date=? WHERE month_year=?", [document.getElementById('this_month_budget').value, upd_date, fDateMY]); 
+      });
+    } else {
+      myApp.alert("Not supported on your phone.");
+    }
+    loadIndex();
+  });
 loadIndex();
 
 myApp.onPageInit('index', function (page) {
+  // this month budget on focus out
+  $('#this_month_budget').focusout(function() {
+    if (mydb) {
+      var fDate = new Date;
+      var fDateMY = getFormattedDateYM(fDate);
+      var upd_date = getFormattedDateYMDHMS(fDate);
+      mydb.transaction(function (t) {
+        t.executeSql("UPDATE budget SET budget=?, upd_date=? WHERE month_year=?", [document.getElementById('this_month_budget').value, upd_date, fDateMY]); 
+      });
+    } else {
+      myApp.alert("Not supported on your phone.");
+    }
+    loadIndex();
+  });
+
   loadIndex();
 });
 
