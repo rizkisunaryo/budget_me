@@ -267,7 +267,7 @@ myApp.onPageInit('spendingFilter', function (page) {
 
     fs_from_spending_dateCal = myApp.calendar({
         input: '#fs_from_spending_date',
-        closeOnSelect: true,
+        closeOnSelect: true
         // onClose: function (p, values, displayValues) {
         //             localStorage.fs_from_spending_date = document.getElementById('fs_from_spending_date').value;
         //           }
@@ -278,7 +278,7 @@ myApp.onPageInit('spendingFilter', function (page) {
 
     fs_to_spending_dateCal = myApp.calendar({
         input: '#fs_to_spending_date',
-        closeOnSelect: true,
+        closeOnSelect: true
         // onClose: function (p, values, displayValues) {
         //             localStorage.fs_to_spending_date = document.getElementById('fs_to_spending_date').value;
         //           }
@@ -311,6 +311,15 @@ myApp.onPageInit('spendingFilter', function (page) {
 
 myApp.onPageInit('budget', function (page) {
   listBudget();
+});
+
+myApp.onPageInit('budgetFilter', function (page) {
+    if (!isEmpty(localStorage.fb_from_budget_year)) {
+      document.getElementById('fb_from_budget_year').value = localStorage.fb_from_budget_year;
+    }
+    if (!isEmpty(localStorage.fb_to_budget_year)) {
+      document.getElementById('fb_to_budget_year').value = localStorage.fb_to_budget_year;
+    }
 });
 
 
@@ -758,6 +767,7 @@ function spendingFilterClear() {
   // localStorage.fs_location = '';
 }
 
+// apply spending filter
 function spendingFilterApply() {
   localStorage.fs_from_spending_date = document.getElementById('fs_from_spending_date').value;
   localStorage.fs_to_spending_date = document.getElementById('fs_to_spending_date').value;
@@ -889,11 +899,11 @@ function listBudget() {
       //Get all the cars from the database with a select statement, set outputCarList as the callback function for the executeSql command
       mydb.transaction(function (t) {
           var sqlStr = "SELECT * FROM budget WHERE 1 ";
-          if (!isEmpty(localStorage.fs_from_month_year)) {
-            sqlStr += "AND month_year >= '"+localStorage.fs_from_month_year+"' ";
+          if (!isEmpty(localStorage.fb_from_budget_year)) {
+            sqlStr += "AND month_year >= '"+localStorage.fb_from_budget_year+"-01' ";
           } else
-          if (!isEmpty(localStorage.fs_to_month_year)) {
-            sqlStr += "AND month_year <= '"+localStorage.fs_to_month_year+"' ";
+          if (!isEmpty(localStorage.fb_to_budget_year)) {
+            sqlStr += "AND month_year <= '"+localStorage.fb_to_budget_year+"-12' ";
           }
           sqlStr += 'ORDER BY month_year ASC';
           t.executeSql(sqlStr, [], listBudgetGenerate);
@@ -1042,4 +1052,16 @@ function loadBudgetEditPage (data) {
     '</div>'
   );
   return;
+}
+
+// clear budget filter
+function budgetFilterClear() {
+  document.getElementById('fb_from_budget_year').value = '';
+  document.getElementById('fb_to_budget_year').value = '';
+}
+
+// apply budget filter
+function budgetFilterApply() {
+  localStorage.fb_from_budget_year = document.getElementById('fb_from_budget_year').value;
+  localStorage.fb_to_budget_year = document.getElementById('fb_to_budget_year').value;
 }

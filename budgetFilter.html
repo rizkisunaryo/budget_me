@@ -1,1 +1,52 @@
-budgetFilter.html
+
+<!-- We don't need full layout here, because this page will be parsed with Ajax-->
+<!-- Top Navbar-->
+<div class="navbar">
+  <div class="navbar-inner">
+    <div class="left"><a href="#" class="back link"> <i class="icon icon-back"></i><span>Back</span></a></div>
+    <div class="center sliding">Filter Budget List</div>
+    <div class="right">
+      <a href="#" class="link icon-only open-panel"> <i class="icon icon-bars"></i></a>
+    </div>
+  </div>
+</div>
+<div class="pages">
+  <!-- Page, data-page contains page name-->
+  <div data-page="budgetFilter" class="page">
+    <!-- Scrollable page content-->
+    <div class="page-content">
+      <div class="content-block">
+        <div class="list-block">
+          <ul>
+            <li>
+              <div class="item-content">
+                <div class="item-inner">
+                  <div class="item-input">
+                    <input type="tel" placeholder="From year" onkeypress="return isNumberKey(event);" id="fb_from_budget_year">
+                  </div>
+                </div>
+              </div>
+            </li>
+            <li>
+              <div class="item-content">
+                <div class="item-inner">
+                  <div class="item-input">
+                    <input type="tel" placeholder="To year" onkeypress="return isNumberKey(event);" id="fb_to_budget_year">
+                  </div>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </div>
+        <div class="row">
+          <div class="col-50">
+            <a href="#" class="button button-big button-fill color-gray" style="background-color:grey;" onclick="budgetFilterClear();">Clear</a>
+          </div>
+          <div class="col-50">
+            <a href="#" class="button button-big button-fill color-gray" style="background-color:blue;" onclick="budgetFilterApply(); listBudget(); mainView.router.back();">Apply</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
