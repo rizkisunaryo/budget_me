@@ -1,5 +1,6 @@
 var fs_from_spending_dateCal;
 var fs_to_spending_dateCal;
+var monthZeroedArr = ['01','02','03','04','05','06','07','08','09','10','11','12'];
 
 // Initialize your app
 var myApp = new Framework7({
@@ -877,7 +878,7 @@ function listBudgetGenerate(transaction, results) {
         if (prevYear!=budget_year && prevYear!=='') {
           theInnerHtml += 
             '<div class="content-block-title" id="budgetHistoryTitle_'+prevYear+'">'+prevYear+'</div>\n' + 
-            '<div class="list-block virtual-list media-list" id="budgetHistoryList_'+prevYear+'"></div>\n';
+            '<div class="list-block virtual-list" id="budgetHistoryList_'+prevYear+'"></div>\n';
 
           // budgetTotalPerYear = 0;
         }
@@ -893,7 +894,7 @@ function listBudgetGenerate(transaction, results) {
     }
     theInnerHtml += 
       '<div class="content-block-title" id="budgetHistoryTitle_'+prevYear+'">'+prevYear+'</div>\n' + 
-      '<div class="list-block virtual-list media-list" id="budgetHistoryList_'+prevYear+'"></div>\n';
+      '<div class="list-block virtual-list" id="budgetHistoryList_'+prevYear+'"></div>\n';
 
     budgetListContainer.innerHTML = theInnerHtml;
 
@@ -903,19 +904,12 @@ function listBudgetGenerate(transaction, results) {
             items: itemsDateArray[k],
             // Template 7 template to render each item
             template: 
-            '<li>\n' + 
-            '  <a href="#" class="item-link item-content budget-edit" data-id="{{month_year}}">\n' + 
-            '    <div class="item-inner" style="height:77px;">\n' + 
-            '      <div class="item-title-row">\n' + 
-            '        <div class="item-title">{{month_str}}</div>\n' + 
-            '        <div class="item-after"></div>\n' + 
-            '      </div>\n' + 
-            '      <div class="item-subtitle">{{budget}}</div>\n' + 
-            '      <div class="item-text"></div>\n' + 
-            '    </div>\n' + 
-            '  </a>\n' + 
-            '</li>',
-            height:77
+            '<li class="item-content budget-edit" data-id="{{month_year}}">\n' + 
+            '  <div class="item-inner">\n' + 
+            '    <div class="item-title">{{month_str}}</div>\n' + 
+            '    <div class="item-after">{{budget}}</div>\n' + 
+            '  </div>\n' + 
+            '</li>'
         });
     }
 
@@ -923,4 +917,103 @@ function listBudgetGenerate(transaction, results) {
       loadBudgetEdit($$(this).data('id'));
     });
   }
+}
+
+// load budget data to edit
+function loadBudgetEdit(month_year) {
+  if (mydb) {
+      //Get all the cars from the database with a select statement, set outputCarList as the callback function for the executeSql command
+      mydb.transaction(function (t) {
+          t.executeSql("SELECT * FROM budget WHERE month_year=?", [month_year], function (transaction, results) {
+            if (results.rows.length>=1) {
+              loadBudgetEditPage(results.rows.item(0));
+            }
+          });
+      });
+  } else {
+      var data = {};
+      data['id']=1;
+      data['month_year']='2015-12-12';
+      data['budget']='7,777,700';
+      loadBudgetEditPage(data);
+  }
+}
+
+// load Edit Budget page
+function loadBudgetEditPage (data) {
+  var theHtml = 
+    '<!-- We don\'t need full layout here, because this page will be parsed with Ajax-->\n' + 
+    '<!-- Top Navbar-->\n' + 
+    '<div class="navbar">\n' + 
+    '  <div class="navbar-inner">\n' + 
+    '    <div class="left"><a href="#" class="back link"> <i class="icon icon-back"></i><span>Back</span></a></div>\n' + 
+    '    <div class="center sliding">Add Budget</div>\n' + 
+    '    <div class="right">\n' + 
+    '      <a href="#" class="link icon-only open-panel"> <i class="icon icon-bars"></i></a>\n' + 
+    '    </div>\n' + 
+    '  </div>\n' + 
+    '</div>\n' + 
+    '<div class="pages">\n' + 
+    '  <!-- Page, data-page contains page name-->\n' + 
+    '  <div data-page="budgetAdd" class="page">\n' + 
+    '    <!-- Scrollable page content-->\n' + 
+    '    <div class="page-content">\n' + 
+    '      <div class="content-block">\n' + 
+    '        <div class="list-block">\n' + 
+    '          <ul>\n' + 
+    '            <li>\n' + 
+    '              <a href="#" class="item-link smart-select">\n' + 
+    '                <!-- select -->\n' + 
+    '                <select id="budget_month">\n' + 
+    '                  <option value="">Select</option>\n';
+  for (var i in monthZeroedArr) {
+    theHtml += '                  <option ';
+    var selected = data.month_year.substring(5,7)===monthZeroedArr[i] ? 'selected' : '';
+    theHtml += selected +' value="'+monthZeroedArr[i]+'">'+getMonthString(monthZeroedArr[i])+'</option>\n';
+  }
+  mainView.router.loadContent(
+    theHtml + 
+    '                </select>\n' + 
+    '                <div class="item-content">\n' + 
+    '                  <div class="item-inner">\n' + 
+    '                    <!-- Select label -->\n' + 
+    '                    <div class="item-title">Month</div>\n' + 
+    '                  </div>\n' + 
+    '                </div>\n' + 
+    '              </a>\n' + 
+    '            </li>\n' + 
+    '            <li>\n' + 
+    '              <div class="item-content">\n' + 
+    '                <div class="item-inner">\n' + 
+    '                  <div class="item-input">\n' + 
+    '                    <input type="tel" placeholder="Year" onkeypress="return isNumberKey(event);" id="budget_year" value="'+data.month_year.substring(0,4)+'">\n' + 
+    '                  </div>\n' + 
+    '                </div>\n' + 
+    '              </div>\n' + 
+    '            </li>\n' + 
+    '            <li>\n' + 
+    '              <div class="item-content">\n' + 
+    '                <div class="item-inner">\n' + 
+    '                  <div class="item-input">\n' + 
+    '                    <input type="tel" placeholder="How much?" onkeypress="return isNumberKey(event);" onkeyup="this.value=numberWithCommas(this.value);" id="budget" value="'+data.budget+'">\n' + 
+    '                  </div>\n' + 
+    '                </div>\n' + 
+    '              </div>\n' + 
+    '            </li>\n' + 
+    '          </ul>\n' + 
+    '        </div>\n' + 
+    '        <div class="row">\n' + 
+    '          <div class="col-50">\n' + 
+    '            <a href="#" class="button button-big button-fill color-gray" style="background-color:red;" onclick="budgetDel('+data.month_year+');">Delete</a>\n' + 
+    '          </div>\n' + 
+    '          <div class="col-50">\n' + 
+    '            <a href="#" class="button button-big button-fill color-gray" style="background-color:grey;" onclick="budgetEdit('+data.month_year+');">Edit</a>\n' + 
+    '          </div>\n' + 
+    '        </div>\n' + 
+    '      </div>\n' + 
+    '    </div>\n' + 
+    '  </div>\n' + 
+    '</div>'
+  );
+  return;
 }
