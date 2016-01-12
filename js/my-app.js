@@ -831,6 +831,57 @@ function budgetAdd() {
   }
 }
 
+// Edit BUDGET
+function budgetEdit(month_year) {
+  //check to ensure the mydb object has been created
+  if (mydb) {
+      //get the values of the make and model text inputs
+      var budget = document.getElementById("budget").value.trim();
+      var budgetNumber = Number(budget.split(',').join(''));
+      var is_del = 0;
+      var upd_date = getFormattedDateYMDHMS(convertDateToGMT7(new Date()));
+
+      //Test to ensure that the user has entered both a make and model
+      if (budget!=="" && budgetNumber!=0) {
+          //Insert the user entered details into the cars table, note the use of the ? placeholder, these will replaced by the data passed in as an array as the second parameter
+          mydb.transaction(function (t) {
+              t.executeSql("UPDATE budget SET budget=?, upd_date=? WHERE month_year=?", [budget, upd_date, month_year]);              
+              listBudget();
+              mainView.router.back();
+          });
+          mydb.transaction(function (t) {
+              t.executeSql("INSERT INTO name (name) VALUES (?)", [name]);
+          });
+          mydb.transaction(function (t) {
+              t.executeSql("INSERT INTO brand (name) VALUES (?)", [brand]);
+          });
+          mydb.transaction(function (t) {
+              t.executeSql("INSERT INTO location (name) VALUES (?)", [location]);
+          });
+      } else {
+          myApp.alert("Input not complete!");
+      }
+  } else {
+      myApp.alert("Not supported on your phone.");
+      mainView.router.back();
+  }
+}
+
+// Delete BUDGET
+function budgetDel(month_year) {
+  //check to ensure the mydb object has been created
+  if (mydb) {
+    mydb.transaction(function (t) {
+      t.executeSql("DELETE FROM budget WHERE month_year=?", [month_year]);
+      listBudget();
+      mainView.router.back();
+    });
+  } else {
+      myApp.alert("Not supported on your phone.");
+      mainView.router.back();
+  }
+}
+
 // list BUDGET
 function listBudget() {
   //check to ensure the mydb object has been created
@@ -852,7 +903,7 @@ function listBudget() {
   }
 }
 
-// generate list view for SPENDING
+// generate list view for BUDGET
 function listBudgetGenerate(transaction, results) {
   if (results.rows.length < 1) {
     document.getElementById('budgetWelcome').innerHTML = '<p>No data. Please edit filter or add budget.</p>';
@@ -940,14 +991,14 @@ function loadBudgetEdit(month_year) {
 }
 
 // load Edit Budget page
-function loadBudgetEditPage (data) {
-  var theHtml = 
+function loadBudgetEditPage (data) {    
+  mainView.router.loadContent(
     '<!-- We don\'t need full layout here, because this page will be parsed with Ajax-->\n' + 
     '<!-- Top Navbar-->\n' + 
     '<div class="navbar">\n' + 
     '  <div class="navbar-inner">\n' + 
     '    <div class="left"><a href="#" class="back link"> <i class="icon icon-back"></i><span>Back</span></a></div>\n' + 
-    '    <div class="center sliding">Add Budget</div>\n' + 
+    '    <div class="center sliding">Edit Budget</div>\n' + 
     '    <div class="right">\n' + 
     '      <a href="#" class="link icon-only open-panel"> <i class="icon icon-bars"></i></a>\n' + 
     '    </div>\n' + 
@@ -961,34 +1012,9 @@ function loadBudgetEditPage (data) {
     '      <div class="content-block">\n' + 
     '        <div class="list-block">\n' + 
     '          <ul>\n' + 
-    '            <li>\n' + 
-    '              <a href="#" class="item-link smart-select">\n' + 
-    '                <!-- select -->\n' + 
-    '                <select id="budget_month">\n' + 
-    '                  <option value="">Select</option>\n';
-  for (var i in monthZeroedArr) {
-    theHtml += '                  <option ';
-    var selected = data.month_year.substring(5,7)===monthZeroedArr[i] ? 'selected' : '';
-    theHtml += selected +' value="'+monthZeroedArr[i]+'">'+getMonthString(monthZeroedArr[i])+'</option>\n';
-  }
-  mainView.router.loadContent(
-    theHtml + 
-    '                </select>\n' + 
-    '                <div class="item-content">\n' + 
-    '                  <div class="item-inner">\n' + 
-    '                    <!-- Select label -->\n' + 
-    '                    <div class="item-title">Month</div>\n' + 
-    '                  </div>\n' + 
-    '                </div>\n' + 
-    '              </a>\n' + 
-    '            </li>\n' + 
-    '            <li>\n' + 
-    '              <div class="item-content">\n' + 
-    '                <div class="item-inner">\n' + 
-    '                  <div class="item-input">\n' + 
-    '                    <input type="tel" placeholder="Year" onkeypress="return isNumberKey(event);" id="budget_year" value="'+data.month_year.substring(0,4)+'">\n' + 
-    '                  </div>\n' + 
-    '                </div>\n' + 
+    '            <li class="item-content">\n' + 
+    '              <div class="item-inner">\n' + 
+    '                <div class="item-title">'+getMonthString(data.month_year.substring(5,7))+' '+data.month_year.substring(0,4)+'</div>\n' + 
     '              </div>\n' + 
     '            </li>\n' + 
     '            <li>\n' + 
@@ -1004,10 +1030,10 @@ function loadBudgetEditPage (data) {
     '        </div>\n' + 
     '        <div class="row">\n' + 
     '          <div class="col-50">\n' + 
-    '            <a href="#" class="button button-big button-fill color-gray" style="background-color:red;" onclick="budgetDel('+data.month_year+');">Delete</a>\n' + 
+    '            <a href="#" class="button button-big button-fill color-gray" style="background-color:red;" onclick="budgetDel(\''+data.month_year+'\');">Delete</a>\n' + 
     '          </div>\n' + 
     '          <div class="col-50">\n' + 
-    '            <a href="#" class="button button-big button-fill color-gray" style="background-color:grey;" onclick="budgetEdit('+data.month_year+');">Edit</a>\n' + 
+    '            <a href="#" class="button button-big button-fill color-gray" style="background-color:grey;" onclick="budgetEdit(\''+data.month_year+'\');">Edit</a>\n' + 
     '          </div>\n' + 
     '        </div>\n' + 
     '      </div>\n' + 
