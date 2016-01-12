@@ -58,6 +58,10 @@
       li.chart {
         margin-bottom: -5px;
       }
+
+      .no-top-margin {
+        margin-top: 0;
+      }
     </style>
     <script type="text/javascript" src="js/jquery-1.11.3.min.js"></script>
     <script type="text/javascript" src="js/Chart.js"></script>
@@ -114,11 +118,11 @@
                 <span style="font-size:27px; font-weight:bold;">99,999</span>
                 <div class="content-block-title">Remaining Today</div>
                 <span style="font-size:27px; font-weight:bold;">99,999</span>
-                <div class="content-block-title">Today Spending</div>
-                <p><a href="todaySpendingAdd.html" class="button link button-fill color-gray" style="background-color:blue;">Add Spending</a></p>
-                <div id="todaySpendingWelcome"></div>
-                <div id="todaySpendingListContainer"></div>
+                <div class="content-block-title">Today Spendings</div>
+                <div style="font-size:27px; font-weight:bold;" id="todaySpendingTotal"></div>
               </center>
+                <p style="margin-left:1em; margin-right:1em;"><a href="todaySpendingAdd.html" class="button link button-fill color-gray" style="background-color:blue;">Add Spending</a></p>
+                <div id="todaySpendingListContainer"></div>              
             </div>
           </div>
         </div>

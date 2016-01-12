@@ -180,6 +180,14 @@ function getFormattedDateYMDHMS (d) {
                d.getSeconds().padLeft()].join(':');
 }
 
+// format date to yyyy-MM-dd
+function getFormattedDateYMD(d) {
+  return [d.getFullYear(),
+              (d.getMonth()+1).padLeft(),
+               d.getDate().padLeft(),
+               ].join('-');
+}
+
 // format date to yyyy-MM
 function getFormattedDateYM(d) {
   return [d.getFullYear(),
@@ -246,12 +254,14 @@ function convertDateToGMT7(rawD) {
 
 
 function loadIndex() {
+  var fDate = new Date;
+  var fDateMY = getFormattedDateYM(fDate);
+  var fDateMYD = getFormattedDateYMD(fDate);
+  var upd_date = getFormattedDateYMDHMS(fDate);
+
+  // load this month budget
   if (mydb) {
-    //Get all the cars from the database with a select statement, set outputCarList as the callback function for the executeSql command
     mydb.transaction(function (t) {
-      var fDate = new Date;
-      var fDateMY = getFormattedDateYM(fDate);
-      var upd_date = getFormattedDateYMDHMS(fDate);
       t.executeSql("SELECT * FROM budget WHERE month_year='"+fDateMY+"' ", [], function (transaction, results) {
         if (results.rows.length>0) {
           document.getElementById('this_month_budget').value = results.rows.item(0).budget;
@@ -267,6 +277,7 @@ function loadIndex() {
     document.getElementById('this_month_budget').value = '0';
   }
 
+  // this month budget on focus out
   $('#this_month_budget').focusout(function() {
     if (mydb) {
       var fDate = new Date;
@@ -279,11 +290,112 @@ function loadIndex() {
       myApp.alert("Not supported on your phone.");
     }
   });
+
+  // load today spendings
+  if (mydb) {
+      mydb.transaction(function (t) {
+          t.executeSql("SELECT * FROM spending WHERE spending_date='"+fDateMYD+"' ", [], 
+            function (transaction, results) {
+              if (results.rows.length < 1) {
+                document.getElementById('todaySpendingTotal').innerHTML = '0';
+                var todaySpendingListContainer = document.getElementById('todaySpendingListContainer');
+                todaySpendingListContainer.innerHTML = '';
+              } else {
+                var todaySpendingListContainer = document.getElementById('todaySpendingListContainer');
+                var i;
+                var theInnerHtml = '';
+                var itemsDateArray = [];
+                var prevSpendingDate = '';
+                var spendingTotalPerDay = 0;
+                for (i = 0; i < results.rows.length; i++) {
+                    var row = results.rows.item(i);
+
+                    if (typeof itemsDateArray[row.spending_date] === 'undefined') {
+                        itemsDateArray[row.spending_date] = [];
+                    }
+
+                    if (prevSpendingDate!=row.spending_date && prevSpendingDate!=='') {
+                      theInnerHtml += 
+                        // '<div style="margin-top:0;" class="content-block-title" id="spendingHistoryTitle_'+prevSpendingDate+'">'+numberWithCommas(spendingTotalPerDay.toString())+'</div>\n' + 
+                        '<div class="list-block virtual-list media-list" id="spendingHistoryList_'+prevSpendingDate+'"></div>\n';
+                      document.getElementById('todaySpendingTotal').innerHTML = numberWithCommas(spendingTotalPerDay.toString());
+
+                      spendingTotalPerDay = 0;
+                    }
+                    spendingTotalPerDay += Number(row.spent.split(',').join(''));
+
+                    var jsonData = {};
+                    jsonData['id'] = row.id;
+                    jsonData['name'] = row.name;
+                    jsonData['location'] = row.location;
+                    jsonData['descr'] = row.descr;
+                    jsonData['spent'] = row.spent;
+                    itemsDateArray[row.spending_date].push(jsonData);
+
+                    prevSpendingDate = row.spending_date;
+                }
+                theInnerHtml += 
+                  // '<div style="margin-top:0;" class="content-block-title" id="spendingHistoryTitle_'+prevSpendingDate+'">'+numberWithCommas(spendingTotalPerDay.toString())+'</div>\n' + 
+                  '<div class="list-block virtual-list media-list no-top-margin" id="spendingHistoryList_'+prevSpendingDate+'"></div>\n';
+                document.getElementById('todaySpendingTotal').innerHTML = numberWithCommas(spendingTotalPerDay.toString());
+
+                todaySpendingListContainer.innerHTML = theInnerHtml;
+
+                for (var k in itemsDateArray){
+                    myApp.virtualList('#spendingHistoryList_'+k, {
+                        // Array with plain HTML items
+                        items: itemsDateArray[k],
+                        // Template 7 template to render each item
+                        template: 
+                        '<li>\n' + 
+                        '  <a href="#" class="item-link item-content spending-edit" data-id="{{id}}">\n' + 
+                        '    <div class="item-inner" style="height:77px;">\n' + 
+                        '      <div class="item-title-row">\n' + 
+                        '        <div class="item-title">{{name}}</div>\n' + 
+                        '        <div class="item-after">{{spent}}</div>\n' + 
+                        '      </div>\n' + 
+                        '      <div class="item-subtitle">{{location}}</div>\n' + 
+                        '      <div class="item-text">{{descr}}</div>\n' + 
+                        '    </div>\n' + 
+                        '  </a>\n' + 
+                        '</li>',
+                        height:77
+                    });
+                }
+
+                $$('.spending-edit').on('click', function () {
+                  loadSpendingEdit($$(this).data('id'));
+                });
+              }
+            }
+          );
+      });
+  } else {
+      listSpendingGenerate2();
+  }
 }
 loadIndex();
 
 myApp.onPageInit('index', function (page) {
   loadIndex();
+});
+
+myApp.onPageInit('todaySpendingAdd', function (page) {
+    var spending_dateCal = myApp.calendar({
+        input: '#spending_date',
+        closeOnSelect: true,
+    });
+    document.getElementById('spending_date').value = getFormattedDateYMD(new Date);
+
+    //check to ensure the mydb object has been created
+    if (mydb) {
+        //Get all the cars from the database with a select statement, set outputCarList as the callback function for the executeSql command
+        mydb.transaction(function (t) {
+            setAutoComplete(t,'name','#name');
+            setAutoComplete(t,'brand','#brand');
+            setAutoComplete(t,'location','#location');
+        });
+    } 
 });
 
 myApp.onPageInit('spending', function (page) {
@@ -408,6 +520,7 @@ function spendingAdd() {
           mydb.transaction(function (t) {
               t.executeSql("INSERT INTO location (name) VALUES (?)", [location]);
           });
+          loadIndex();
       } else {
           myApp.alert("Input not complete!");
       }
@@ -448,6 +561,7 @@ function spendingEdit(id) {
           mydb.transaction(function (t) {
               t.executeSql("INSERT INTO location (name) VALUES (?)", [location]);
           });
+          loadIndex();
       } else {
           myApp.alert("Input not complete!");
       }
@@ -464,6 +578,7 @@ function spendingDel(id) {
     mydb.transaction(function (t) {
       t.executeSql("DELETE FROM spending WHERE id=?", [id]);
       listSpending();
+      loadIndex();
       mainView.router.back();
     });
   } else {
