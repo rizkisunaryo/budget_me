@@ -346,7 +346,7 @@ function loadIndex() {
                     if (prevSpendingDate!=row.spending_date && prevSpendingDate!=='') {
                       theInnerHtml += 
                         // '<div style="margin-top:0;" class="content-block-title" id="spendingHistoryTitle_'+prevSpendingDate+'">'+numberWithCommas(spendingTotalPerDay.toString())+'</div>\n' + 
-                        '<div class="list-block virtual-list media-list" id="spendingHistoryList_'+prevSpendingDate+'"></div>\n';
+                        '<div class="list-block virtual-list media-list" id="todaySpendingHistoryList_'+prevSpendingDate+'"></div>\n';
                       document.getElementById('todaySpendingTotal').innerHTML = numberWithCommas(spendingTotalPerDay.toString());
 
                       spendingTotalPerDay = 0;
@@ -365,13 +365,13 @@ function loadIndex() {
                 }
                 theInnerHtml += 
                   // '<div style="margin-top:0;" class="content-block-title" id="spendingHistoryTitle_'+prevSpendingDate+'">'+numberWithCommas(spendingTotalPerDay.toString())+'</div>\n' + 
-                  '<div class="list-block virtual-list media-list no-top-margin" id="spendingHistoryList_'+prevSpendingDate+'"></div>\n';
+                  '<div class="list-block virtual-list media-list no-top-margin" id="todaySpendingHistoryList_'+prevSpendingDate+'"></div>\n';
                 document.getElementById('todaySpendingTotal').innerHTML = numberWithCommas(spendingTotalPerDay.toString());
 
                 todaySpendingListContainer.innerHTML = theInnerHtml;
 
                 for (var k in itemsDateArray){
-                    myApp.virtualList('#spendingHistoryList_'+k, {
+                    myApp.virtualList('#todaySpendingHistoryList_'+k, {
                         // Array with plain HTML items
                         items: itemsDateArray[k],
                         // Template 7 template to render each item
